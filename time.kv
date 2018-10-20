@@ -1,0 +1,117 @@
+#:kivy 1.0.9
+#:import utils kivy.utils
+#:import datetime datetime
+
+<EmployeePopup>
+    auto_dismiss: False
+    title: "Sign In" if not root.employee.signedIn else 'Sign Out'
+    title_size: 30
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            font_size: 50
+            text: root.greeting
+        Label:
+            font_size: 30
+            text: root.message
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 4
+            Button:
+                font_size: 30
+                background_color: utils.get_color_from_hex('#2ecc71')
+                background_normal: ""
+                text: "SIGN IN" if not root.employee.signedIn else "SIGN OUT"
+                on_release: root.logEmployee()
+            Button:
+                font_size: 30
+                background_color: utils.get_color_from_hex('#e74c3c')
+                background_normal: ""
+                text: "Cancel"
+                on_release: root.dismiss()
+
+<EmployeeView>
+    orientation: "horizontal"
+    size_hint_y: None
+    height: 140
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex('#95a5a6') if not root.pressed else utils.get_color_from_hex('#7f8c8d')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    Label:
+        text: "IN" if root.signedIn else "OUT"
+        font_size: 30
+        size: root.height, root.height
+        size_hint: None, None
+        canvas.before:
+            Color:
+                rgb: utils.get_color_from_hex('#27ae60') if root.signedIn else utils.get_color_from_hex('#c0392b')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    BoxLayout:
+        orientation: "vertical"
+        padding: [0, 15, 0, 15]
+        Label:
+            text: root.name + " [b]" + root.surname + "[/b]"
+            color: utils.get_color_from_hex('#2c3e50')
+            font_size: 35
+            markup: True
+        BoxLayout:
+            orientation: "horizontal"
+            Label:
+                font_size: 20
+                text: "Signed in: " + root.time_in_string
+            Label:
+                text: "Signed out: " + root.time_out_string
+                font_size: 20
+
+<ClockWidget>
+    canvas.before:
+        Color:
+            rgb: utils.get_color_from_hex('#34495e')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+        width: root.width
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: root.width, 160
+            padding: [30,30,30,30]
+            RelativeLayout:
+                Label:
+                    text: root.uxTime
+                    font_size: 70
+                    pos: 0, 0
+                Label:
+                    text: ": " + root.uxSeconds
+                    font_size: 30
+                    pos: 120, 15
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: root.uxDay
+                    font_size: 32
+                Label:
+                    text: root.uxDate
+                    font_size: 32
+        EmployeeList:
+            id: rv
+            scroll_type: ['bars','content']
+            viewclass: 'EmployeeView'
+            
+            RecycleGridLayout:
+                size: root.width, root.height
+                padding: [5,5,5,5]
+                cols: 2
+                default_size: None, None
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 5
