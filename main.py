@@ -163,7 +163,6 @@ class EmployeeList(RecycleView):
         self.data[employee]['timeIn'] = datetime.datetime.now()
         self.data[employee]['timeOut'] = {}
 
-        # pp.pprint(self.data)
         self.refresh_from_data()
         # Save data
         # Connect to store
@@ -289,6 +288,8 @@ class EmployeeList(RecycleView):
                     "Unable to connect with Google Hours Sheet"
                     if employee not in self.dirtyRecords:
                         self.dirtyRecords.append(employee)
+                else:
+                    print "Upload successful."
 
 
    
