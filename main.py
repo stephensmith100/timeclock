@@ -169,11 +169,15 @@ class EmployeeList(RecycleView):
         store = JsonStore('employees.json')
         record = str(self.data[employee]['employeeNo'])
 
+        timeIn = self.data[employee]['timeIn'].strftime("%Y-%m-%d %X")
+        timeOut = ""
+        signedIn = True
+
         if store.exists(record):
             # store[record]['timeIn'] = str(self.data[employee]['timeIn'])
-            store[record]['timeIn'] = self.data[employee]['timeIn'].strftime("%Y-%m-%d %X")
-            store[record]['timeOut'] = ""
-            store[record]['signedIn'] = True
+            store[record]['timeIn'] = timeIn
+            store[record]['timeOut'] = timeOut
+            store[record]['signedIn'] = signedIn
             store[record] = store[record]
             
         else:
@@ -182,7 +186,10 @@ class EmployeeList(RecycleView):
         # Create a dirty flag
         dirtyFlag = {
             'index': employee,
-            'employeeNo': record
+            'employeeNo': record,
+            'signedIn' : signedIn,
+            'timeIn' : timeIn,
+            'timeOut' : timeOut
         }
         
         # Mark the record as dirty so that it is uploaded to the Google servers.
@@ -190,7 +197,6 @@ class EmployeeList(RecycleView):
         if dirtyFlag not in self.dirtyRecords:
             self.dirtyRecords.append(dirtyFlag)
 
-        print self.dirtyRecords
         print str(len(self.dirtyRecords))
         
 
@@ -206,6 +212,9 @@ class EmployeeList(RecycleView):
         store = JsonStore('employees.json')
         # # Check if the record exists
         record = str(self.data[employee]['employeeNo'])
+        timeIn = self.data[employee]['timeIn'].strftime("%Y-%m-%d %X")
+        timeOut = self.data[employee]['timeOut'].strftime("%Y-%m-%d %X")
+        signedIn = False
 
         if store.exists(record):
             store[record]['timeOut'] = self.data[employee]['timeOut'].strftime("%Y-%m-%d %X")
@@ -218,7 +227,10 @@ class EmployeeList(RecycleView):
         # Create a dirty flag
         dirtyFlag = {
             'index': employee,
-            'employeeNo': record
+            'employeeNo': record,
+            'signedIn' : signedIn,
+            'timeIn' : timeIn,
+            'timeOut' : timeOut
         }
         
         # Mark the record as dirty so that it is uploaded to the Google servers.
@@ -247,43 +259,39 @@ class EmployeeList(RecycleView):
         if len(self.dirtyRecords) > 0:
             # Get first record from the list
             employee = self.dirtyRecords.pop(0)
-            # Get record data for the employee
-            record = employee['employeeNo']
-            store = JsonStore('employees.json')
-            if store.exists(record):
-                state = store[record]['signedIn']
-                timeIn = store[record]['timeIn']
-                timeOut = store[record]['timeOut']
 
-                # Check that the index and employee match
-                store = JsonStore('employees.json')
-                
-                print "UPDATING GOOGLE FOR {} {}".format(store[record]['name'], store[record]['surname'])
-                try:
-                    sheet = self.get_google_sheet(config.GOOGLE_CONFIG['employeeSheet'])
-                    e = sheet.find(str(record))
-                    pp.pprint(record)
-                    # Update SignedIn state
-                    print str(state)
-                    sheet.update_acell(col['signedIn'] + str(e.row), bool2str(state))
-                    # Update timeIn state
-                    print timeIn
-                    sheet.update_acell(col['timeIn'] + str(e.row), str(timeIn))
-                    # Update timeOut state
-                    print timeOut
-                    sheet.update_acell(col['timeOut'] + str(e.row), str(timeOut))
-                except:
-                    print "Unable to connect with Google Employee Sheet"
-            else:
-                print "Error with record."
+            # Get record data for the employee
+            employeeNo = employee['employeeNo']
+            state = employee['signedIn']
+            timeIn = employee['timeIn']
+            timeOut = employee['timeOut']
+
+            print "Updating Data for Employee: {}, Time In: {}, Time Out: {}.".format(employeeNo, timeIn, timeOut)
+            try:
+                sheet = self.get_google_sheet(config.GOOGLE_CONFIG['employeeSheet'])
+                e = sheet.find(str(employeeNo))
+                pp.pprint(employeeNo)
+                # Update SignedIn state
+                print str(state)
+                sheet.update_acell(col['signedIn'] + str(e.row), bool2str(state))
+                # Update timeIn state
+                print timeIn
+                sheet.update_acell(col['timeIn'] + str(e.row), str(timeIn))
+                # Update timeOut state
+                print timeOut
+                sheet.update_acell(col['timeOut'] + str(e.row), str(timeOut))
+            except:
+                print "Unable to connect with Google Employee Sheet"
+
             
             # Check if the record is a complete record with signIn and signOut
             if timeOut:
+
                 # Add the record to the Google Sheet
                 try:
                     print "Trying to upload"
                     hoursSheet = self.get_google_sheet(config.GOOGLE_CONFIG['hoursSheet'])
-                    hoursSheet.append_row([str(record), str(timeIn), str(timeOut)])
+                    hoursSheet.append_row([str(employeeNo), str(timeIn), str(timeOut)])
                 except:
                     "Unable to connect with Google Hours Sheet"
                     if employee not in self.dirtyRecords:
