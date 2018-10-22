@@ -72,6 +72,7 @@ class EmployeeList(RecycleView):
 
     googleFile = "Employee Data"
     dirtyRecords = []
+    threadRunning = False
 
 
     def __init__(self, **kwargs):
@@ -256,7 +257,9 @@ class EmployeeList(RecycleView):
 
     def update_employee_list(self):
         # Check to see if there are any records that need updating
-        if len(self.dirtyRecords) > 0:
+        if len(self.dirtyRecords) > 0 and not self.threadRunning:
+            self.threadRunning = True
+            print "Thread running"
             # Get first record from the list
             employee = self.dirtyRecords.pop(0)
 
@@ -282,8 +285,8 @@ class EmployeeList(RecycleView):
                 sheet.update_acell(col['timeOut'] + str(e.row), str(timeOut))
             except:
                 print "Unable to connect with Google Employee Sheet"
-
-            
+               
+               
             # Check if the record is a complete record with signIn and signOut
             if timeOut:
 
@@ -299,7 +302,11 @@ class EmployeeList(RecycleView):
                 else:
                     print "Upload successful."
 
+            self.threadRunning = False
+            print "Thread Ending"
+            
 
+            
    
 
 # Employee View
@@ -367,29 +374,10 @@ class EmployeeView(RecycleDataViewBehavior, BoxLayout):
     def save_login(self, employee):
         # Pass action to the EmployeeList class
         self.parent.parent.log_employee_in(self.index)
-        
-        """ 
-        eSheet = client.open("Employee Data").sheet1
-        e = eSheet.find(str(employee.employeeNo))
-        
-        print eSheet.update_acell(col['signedIn'] + str(e.row), bool2str( True ) )
-         # add date to the gsheet
-        eSheet.update_acell(col['timeIn'] + str(e.row), str(employee.timeIn))
-        eSheet.update_acell(col['timeOut'] + str(e.row), "") 
-        """
 
     def save_logout(self, employee):
         # Pass action to the EmployeeList class
         self.parent.parent.log_employee_out(self.index)
-
-        """ 
-        eSheet = client.open("Employee Data").sheet1
-        print eSheet
-        e = eSheet.find(str(employee.employeeNo))
-        print e
-        print eSheet.update_acell(col['signedIn'] + str(e.row), bool2str( False ))
-        # add date to the gsheet
-        eSheet.update_acell(col['timeOut'] + str(e.row), str(employee.timeOut)) """
 
 def getDayOfWeek(dateString):
     t1 = time.strptime(dateString, "%m/%d/%Y")
